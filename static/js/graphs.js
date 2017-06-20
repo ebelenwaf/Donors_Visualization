@@ -9,38 +9,44 @@ function makeGraphs(error, projectsJson, statesJson) {
 	var donorschooseProjects = projectsJson;
 	var dateFormat = d3.time.format("%Y-%m-%d");
 	donorschooseProjects.forEach(function(d) {
-		d["date_posted"] = dateFormat.parse(d["date_posted"]);
-		d["date_posted"].setDate(1);
-		d["total_donations"] = +d["total_donations"];
+		d["START_DATE"] = dateFormat.parse(d["START_DATE"]);
+		d["START_DATE"].setDate(1);
+		d["END_DATE"] = dateFormat.parse(d["START_DATE"]);
+		d["END_DATE"].setDate(1);
+		d["AGE_IN_YEARS_NUM"] = +d["AGE_IN_YEARS_NUM"];
 	});
 
 	//Create a Crossfilter instance
 	var ndx = crossfilter(donorschooseProjects);
 
 	//Define Dimensions
-	var dateDim = ndx.dimension(function(d) { return d["date_posted"]; });
-	var resourceTypeDim = ndx.dimension(function(d) { return d["resource_type"]; });
-	var povertyLevelDim = ndx.dimension(function(d) { return d["poverty_level"]; });
-	var stateDim = ndx.dimension(function(d) { return d["school_state"]; });
-	var totalDonationsDim  = ndx.dimension(function(d) { return d["total_donations"]; });
+	var startDateDim = ndx.dimension(function(d) { return d["START_DATE"]; });
+	var diseaseNameDim = ndx.dimension(function(d) { return d["NAME_CHAR"]; });
+	var endDateDim = ndx.dimension(function(d) { return d["END_DATE"]; });
+	var stateDim = ndx.dimension(function(d) { return d["RACE_CD"]; });
+	var ageDim  = ndx.dimension(function(d) { return d["AGE_IN_YEARS_NUM"]; });
+	var patientIdDim  = ndx.dimension(function(d) { return d["PATIENT_ID"]; });
 
 
 	//Calculate metrics
 	var numProjectsByDate = dateDim.group(); 
 	var numProjectsByResourceType = resourceTypeDim.group();
 	var numProjectsByPovertyLevel = povertyLevelDim.group();
+	var numProjectsByAge = ageDim.group();
+
+/*
 	var totalDonationsByState = stateDim.group().reduceSum(function(d) {
-		return d["total_donations"];
-	});
+		return d["AGE_IN_YEARS_NUM"];
+	}); */
 
 	var all = ndx.groupAll();
-	var totalDonations = ndx.groupAll().reduceSum(function(d) {return d["total_donations"];});
+	var totalDonations = ndx.groupAll().reduceSum(function(d) {return d["AGE_IN_YEARS_NUM"];});
 
 	var max_state = totalDonationsByState.top(1)[0].value;
 
 	//Define values (to be used in charts)
-	var minDate = dateDim.bottom(1)[0]["date_posted"];
-	var maxDate = dateDim.top(1)[0]["date_posted"];
+	var minDate = dateDim.bottom(1)[0]["START_DATE"];
+	var maxDate = dateDim.top(1)[0]["START_DATE"];
 
     //Charts
 	var timeChart = dc.barChart("#time-chart");

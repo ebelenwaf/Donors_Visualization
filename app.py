@@ -7,7 +7,7 @@ from bson.json_util import dumps
 
 app = Flask(__name__)
 
-MONGODB_HOST = '10.163.100.96'
+MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
 DBS_NAME = 'test'
 COLLECTION_NAME = 'diabetes'
