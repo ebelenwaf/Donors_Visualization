@@ -40,8 +40,7 @@ function makeGraphs(error, diabetesJson) {
 
 
 	//Calculate metrics
-	var numProjectsByStartDate = startDateDim.group().reduceCount(function(d) {
-		return d["PATIENT_ID"];}); 
+	var numProjectsByStartDate = startDateDim.group().reduceCount(function(d) { return d["START_DATE"];} ); 
 
 	var numProjectsBydiseaseName = diseaseNameDim.group().reduceCount(function(d) {
 		return d["NAME_CHAR"];
@@ -59,6 +58,10 @@ function makeGraphs(error, diabetesJson) {
 		return d["SEX_CD"];
 	});
 
+	var totalNumOfPatients = ndx.groupAll().reduceCount();
+
+
+
 
 /*
 	var totalDonationsByState = stateDim.group().reduceSum(function(d) {
@@ -74,13 +77,16 @@ function makeGraphs(error, diabetesJson) {
 	var minDate = startDateDim.bottom(1)[0]["START_DATE"];
 	var maxDate = startDateDim.top(1)[0]["START_DATE"];
 
+	var minAgeDate = ageDim.bottom(1)[0]["AGE_IN_YEARS_NUM"];
+	var maxAgeDate = ageDim.top(1)[0]["AGE_IN_YEARS_NUM"];
+
     //Charts
 	var timeChart = dc.barChart("#time-chart");
 	var raceTypeChart = dc.rowChart("#resource-type-row-chart");
 	var diseaseNameChart = dc.rowChart("#poverty-level-row-chart");
-	var chart = dc.pieChart("#us-chart");
-	var genderChart = dc.rowChart("#number-projects-nd");
-	//var totalDonationsND = dc.numberDisplay("#total-donations-nd");
+	var chart = dc.barChart("#us-chart");
+	var genderChart = dc.pieChart("#number-projects-nd");
+	var totalDonationsND = dc.numberDisplay("#total-donations-nd");
 
 /*	numberProjectsND
 		.formatNumber(d3.format("d"))
@@ -93,12 +99,33 @@ function makeGraphs(error, diabetesJson) {
 		.group(totalDonations)
 		.formatNumber(d3.format(".3s"));*/
 
-	genderChart
+	/*genderChart
 		.width(300)
         .height(250)
         .dimension(genderDim)
         .group(numProjectsByGender)
-        .xAxis().ticks(4); 
+        .xAxis().ticks(4); */
+
+    totalDonationsND
+	    .formatNumber(d3.format("d"))
+	    .valueAccessor(function(d){return d; })
+	    .group(totalNumOfPatients)
+	    .formatNumber(d3.format(".3s"));
+
+
+    genderChart
+	    .width(300)
+	    .height(250)
+	    .innerRadius(35)
+	    .dimension(genderDim)
+	    .group(numProjectsByGender)
+	    .legend(dc.legend())
+	    // workaround for #703: not enough data is accessible through .label() to display percentages
+	    .renderlet(function(genderChart) {
+	        genderChart.selectAll('text.pie-slice').text(function(d) {
+	            return d.data.key + ' ' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%';
+	        })
+	    });
 
 
 	timeChart
@@ -128,6 +155,19 @@ function makeGraphs(error, diabetesJson) {
         .xAxis().ticks(4);
 
     chart
+		.width(600)
+		.height(160)
+		.margins({top: 10, right: 50, bottom: 30, left: 50})
+		.dimension(ageDim)
+		.group(numProjectsByAge)
+		.transitionDuration(500)
+		.x(d3.scale.linear().domain([minAgeDate, maxAgeDate]))
+		//.yAxisLabel("Age (Years)")
+		.elasticY(true)
+		.xAxisLabel("Age")
+		.yAxis().ticks(4);
+
+    /*chart
 	    .width(300)
 	    .height(250)
 	    .innerRadius(50)
@@ -139,7 +179,7 @@ function makeGraphs(error, diabetesJson) {
 	        chart.selectAll('text.pie-slice').text(function(d) {
 	            return d.data.key + ' ' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%';
 	        })
-	    });
+	    });*/
 
 /*
 	usChart.width(1000)
