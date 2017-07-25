@@ -9,22 +9,26 @@ function makeGraphs(error, diabetesJson) {
 	var donorschooseProjects = diabetesJson;
 	var dateFormat = d3.time.format("%d-%b-%y");
 	donorschooseProjects.forEach(function(d) {
-		if(d["START_DATE"] === "")
+		/*if(d["START_DATE"] === "")
 		{
 			d["START_DATE"] = "3-30-30"
 		}
-		if(d["END_DATE"] === "")
+		if((d["RACE_CD"] === "* TRIAL * T") || (d["RACE_CD"] === "* TRIAL * T") || (d["RACE_CD"] === "* TRIAL * T *"))
 		{
-			d["END_DATE"] = "3-30-30"
-		}
+			d["RACE_CD"] = "N/A"
+		}*/
 
 		d["START_DATE"] = dateFormat.parse(d["START_DATE"]);
 		d["START_DATE"].setDate(1);
+
+		//d.year = d3.time.year(d.START_DATE)
+
 		d["END_DATE"] = dateFormat.parse(d["END_DATE"]);
 		d["END_DATE"].setDate(1);
 		d["AGE_IN_YEARS_NUM"] = +d["AGE_IN_YEARS_NUM"];
 		d["PATIENT_ID"] = +d["PATIENT_ID"];
 	});
+
 
 	//Create a Crossfilter instance
 	var ndx = crossfilter(donorschooseProjects);
@@ -40,7 +44,7 @@ function makeGraphs(error, diabetesJson) {
 
 
 	//Calculate metrics
-	var numProjectsByStartDate = startDateDim.group().reduceCount(function(d) { return d["START_DATE"];} ); 
+	var numProjectsByStartDate = startDateDim.group(); 
 
 	var numProjectsBydiseaseName = diseaseNameDim.group().reduceCount(function(d) {
 		return d["NAME_CHAR"];
@@ -77,16 +81,24 @@ function makeGraphs(error, diabetesJson) {
 	var minDate = startDateDim.bottom(1)[0]["START_DATE"];
 	var maxDate = startDateDim.top(1)[0]["START_DATE"];
 
+	console.log(minDate);
+    console.log(maxDate);
+
 	var minAgeDate = ageDim.bottom(1)[0]["AGE_IN_YEARS_NUM"];
 	var maxAgeDate = ageDim.top(1)[0]["AGE_IN_YEARS_NUM"];
 
     //Charts
-	var timeChart = dc.barChart("#time-chart");
+	var timeChart = dc.lineChart("#time-chart");
+
 	var raceTypeChart = dc.rowChart("#resource-type-row-chart");
 	var diseaseNameChart = dc.rowChart("#poverty-level-row-chart");
 	var chart = dc.barChart("#us-chart");
 	var genderChart = dc.pieChart("#number-projects-nd");
 	var totalDonationsND = dc.numberDisplay("#total-donations-nd");
+
+	var colorScale = ['#719bce', '#7a51ef', '#b768e7', '#f3458a', 
+
+		'#f9513f', '#feba3f', '#ffdf33', '#23b20d', '#0ba368', '#28b9aa'];
 
 /*	numberProjectsND
 		.formatNumber(d3.format("d"))
@@ -128,17 +140,34 @@ function makeGraphs(error, diabetesJson) {
 	    });
 
 
+	// timeChart
+	// 	.width(600)
+	// 	.height(160)
+	// 	.margins({top: 10, right: 50, bottom: 30, left: 50})
+	// 	.dimension(startDateDim)
+	// 	.group(numProjectsByStartDate)
+	// 	.transitionDuration(500)
+	// 	.x(d3.time.scale().domain([minDate, maxDate]))
+	// 	.elasticY(true)
+	// 	.xAxisLabel("Year")
+	// 	.yAxis().ticks(4);
+
 	timeChart
 		.width(600)
-		.height(160)
+		.height(220)
 		.margins({top: 10, right: 50, bottom: 30, left: 50})
 		.dimension(startDateDim)
-		.group(numProjectsByStartDate)
+		.group(numProjectsByStartDate, "start date")
+		.stack(numProjectsByendDate, "end date")
+		.renderArea(true)
 		.transitionDuration(500)
 		.x(d3.time.scale().domain([minDate, maxDate]))
 		.elasticY(true)
+		.renderHorizontalGridLines(true)
+    	.renderVerticalGridLines(true)
 		.xAxisLabel("Year")
-		.yAxis().ticks(4);
+		.yAxis().ticks(6);
+		//.ordinalColors(colorScale);
 
 	raceTypeChart
         .width(300)
@@ -156,7 +185,7 @@ function makeGraphs(error, diabetesJson) {
 
     chart
 		.width(600)
-		.height(160)
+		.height(220)
 		.margins({top: 10, right: 50, bottom: 30, left: 50})
 		.dimension(ageDim)
 		.group(numProjectsByAge)
@@ -203,5 +232,7 @@ function makeGraphs(error, diabetesJson) {
 		*/
 
     dc.renderAll();
+
+    dc.redrawAll();
 
 };
