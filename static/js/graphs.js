@@ -1,7 +1,11 @@
+var query = localStorage.getItem("query");
+
+
 queue()
-    .defer(d3.json, "/test/diabetes")
+    .defer(d3.json, "/test/diabetes/"+query)
     //.defer(d3.json, "static/geojson/us-states.json")
     .await(makeGraphs);
+
 
 function makeGraphs(error, diabetesJson) {
 	
@@ -25,6 +29,7 @@ function makeGraphs(error, diabetesJson) {
 
 		d["END_DATE"] = dateFormat.parse(d["END_DATE"]);
 		d["END_DATE"].setDate(1);
+
 		d["AGE_IN_YEARS_NUM"] = +d["AGE_IN_YEARS_NUM"];
 		d["PATIENT_ID"] = +d["PATIENT_ID"];
 	});
@@ -35,21 +40,24 @@ function makeGraphs(error, diabetesJson) {
 
 	//Define Dimensions
 	var startDateDim = ndx.dimension(function(d) { return d["START_DATE"]; });
-	var diseaseNameDim = ndx.dimension(function(d) { return d["NAME_CHAR"]; });
+	var diseaseNameDim = ndx.dimension(function(d) { return d["MARITAL_STATUS_CD"]; });
 	var endDateDim = ndx.dimension(function(d) { return d["END_DATE"]; });
 	var raceDim = ndx.dimension(function(d) { return d["RACE_CD"]; });
 	var ageDim  = ndx.dimension(function(d) { return d["AGE_IN_YEARS_NUM"]; });
 	var patientIdDim  = ndx.dimension(function(d) { return d["PATIENT_ID"]; });
 	var genderDim  = ndx.dimension(function(d) { return d["SEX_CD"]; });
+	var conceptCodeDim = ndx.dimension(function(d) { return d["CONCEPT_CD_1"]; });
 
 
 	//Calculate metrics
-	var numProjectsByStartDate = startDateDim.group(); 
+	var numProjectsByStartDate = startDateDim.group().reduceCount(function(d) {
+		return d["START_DATE"]}); 
 
 	var numProjectsBydiseaseName = diseaseNameDim.group().reduceCount(function(d) {
-		return d["NAME_CHAR"];
+		return d["MARITAL_STATUS_CD"];
 	});
-	var numProjectsByendDate = endDateDim.group();
+	var numProjectsByendDate = endDateDim.group().reduceCount( function(d) {
+		return d["END_DATE"]});
 	var numProjectsByRace = raceDim.group().reduceCount(function(d) {
 		return d["RACE_CD"];
 	});
@@ -61,6 +69,8 @@ function makeGraphs(error, diabetesJson) {
 	var numProjectsByGender = genderDim.group().reduceCount(function(d) {
 		return d["SEX_CD"];
 	});
+
+	var numconceptCode = conceptCodeDim.group();
 
 	var totalNumOfPatients = ndx.groupAll().reduceCount();
 
@@ -78,8 +88,8 @@ function makeGraphs(error, diabetesJson) {
 	//var max_state = totalDonationsByState.top(1)[0].value;
 
 	//Define values (to be used in charts)
-	var minDate = startDateDim.bottom(1)[0]["START_DATE"];
-	var maxDate = startDateDim.top(1)[0]["START_DATE"];
+	var minDate = endDateDim.bottom(1)[0]["END_DATE"];
+	var maxDate = endDateDim.top(1)[0]["END_DATE"];
 
 	console.log(minDate);
     console.log(maxDate);
@@ -88,7 +98,10 @@ function makeGraphs(error, diabetesJson) {
 	var maxAgeDate = ageDim.top(1)[0]["AGE_IN_YEARS_NUM"];
 
     //Charts
-	var timeChart = dc.lineChart("#time-chart");
+	
+	var compositeChart = dc.compositeChart("#time-chart");
+	var timeChart = dc.lineChart(compositeChart);
+	var EndDateChart = dc.lineChart(compositeChart)
 
 	var raceTypeChart = dc.rowChart("#resource-type-row-chart");
 	var diseaseNameChart = dc.rowChart("#poverty-level-row-chart");
@@ -97,7 +110,6 @@ function makeGraphs(error, diabetesJson) {
 	var totalDonationsND = dc.numberDisplay("#total-donations-nd");
 
 	var colorScale = ['#719bce', '#7a51ef', '#b768e7', '#f3458a', 
-
 		'#f9513f', '#feba3f', '#ffdf33', '#23b20d', '#0ba368', '#28b9aa'];
 
 /*	numberProjectsND
@@ -152,21 +164,49 @@ function makeGraphs(error, diabetesJson) {
 	// 	.xAxisLabel("Year")
 	// 	.yAxis().ticks(4);
 
-	timeChart
+
+
+
+	compositeChart
+		.turnOnControls(true)
 		.width(600)
 		.height(220)
+		.dimension(endDateDim)
 		.margins({top: 10, right: 50, bottom: 30, left: 50})
-		.dimension(startDateDim)
-		.group(numProjectsByStartDate, "start date")
-		.stack(numProjectsByendDate, "end date")
-		.renderArea(true)
 		.transitionDuration(500)
 		.x(d3.time.scale().domain([minDate, maxDate]))
 		.elasticY(true)
 		.renderHorizontalGridLines(true)
     	.renderVerticalGridLines(true)
 		.xAxisLabel("Year")
+
+.compose([
+    EndDateChart
+    	 .group(numProjectsByendDate, "end date")
+		.renderArea(true)
+		.elasticY(true)
+		.renderHorizontalGridLines(true)
+    	.renderVerticalGridLines(true)
+    	.colors(['#E15119']),
+
+
+     timeChart
+		.group(numProjectsByStartDate, "start date")
+		.renderArea(true)
+		.renderArea(true)
+		.elasticY(true)
+		.renderHorizontalGridLines(true)
+    	.renderVerticalGridLines(true)
+		
+		
+  ])
 		.yAxis().ticks(6);
+
+
+
+
+		
+		
 		//.ordinalColors(colorScale);
 
 	raceTypeChart
@@ -191,6 +231,8 @@ function makeGraphs(error, diabetesJson) {
 		.group(numProjectsByAge)
 		.transitionDuration(500)
 		.x(d3.scale.linear().domain([minAgeDate, maxAgeDate]))
+		.renderHorizontalGridLines(true)
+    	.renderVerticalGridLines(true)
 		//.yAxisLabel("Age (Years)")
 		.elasticY(true)
 		.xAxisLabel("Age")
@@ -233,6 +275,6 @@ function makeGraphs(error, diabetesJson) {
 
     dc.renderAll();
 
-    dc.redrawAll();
+    
 
 };
