@@ -30,7 +30,7 @@ $("#builder").queryBuilder({
   filters: [
     {
       id: "CONCEPT_CD",
-      label: "Disease code",
+      label: "ICD9 CODE",
       type: "string",
 
       operators: [

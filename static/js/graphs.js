@@ -49,6 +49,7 @@ function makeGraphs(error, diabetesJson) {
 	var patientIdDim  = ndx.dimension(function(d) { return d["PATIENT_ID"]; });
 	var genderDim  = ndx.dimension(function(d) { return d["SEX_CD"]; });
 	var conceptCodeDim = ndx.dimension(function(d) { return d["CONCEPT_CD_1"]; });
+	// var religionDim = ndx.dimension(function(d) { return d["RELIGION_CD"]; });
 
 
 	//Calculate metrics
@@ -71,6 +72,10 @@ function makeGraphs(error, diabetesJson) {
 	var numProjectsByGender = genderDim.group().reduceCount(function(d) {
 		return d["SEX_CD"];
 	});
+
+	// var numReligion = religionDim.group().reduceCount(function(d) {
+	// 	return d["RELIGION_CD"];
+	// });
 
 	var numconceptCode = conceptCodeDim.group();
 
@@ -110,6 +115,8 @@ function makeGraphs(error, diabetesJson) {
 	var chart = dc.barChart("#us-chart");
 	var genderChart = dc.pieChart("#number-projects-nd");
 	var totalDonationsND = dc.numberDisplay("#total-donations-nd");
+
+	// var religionChart = dc.rowChart("#religion");
 
 	var colorScale = ['#719bce', '#7a51ef', '#b768e7', '#f3458a', 
 		'#f9513f', '#feba3f', '#ffdf33', '#23b20d', '#0ba368', '#28b9aa'];
@@ -224,6 +231,14 @@ function makeGraphs(error, diabetesJson) {
         .dimension(diseaseNameDim)
         .group(numProjectsBydiseaseName)
         .xAxis().ticks(4);
+
+  //   religionChart
+		// .width(300)
+		// .height(125)
+  //       .dimension(religionDim)
+  //       .group(numReligion)
+  //       .xAxis().ticks(4);
+
 
     chart
 		.width(600)
