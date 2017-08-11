@@ -49,7 +49,7 @@ def donorschoose_projects(query):
 
     connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
     collection = connection[DBS_NAME][COLLECTION_NAME]
-    #projects = collection.find({"CONCEPT_CD_1" : "ICD9:250.00"})
+    #projects = collection.find({"CONCEPT_CD" : "ICD9:250.00"})
     #projects = collection.find(projection=FIELDS, limit=100000)
 
 

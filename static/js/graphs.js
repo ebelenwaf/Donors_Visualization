@@ -1,5 +1,7 @@
 var query = localStorage.getItem("query");
 
+console.log(query)
+
 
 queue()
     .defer(d3.json, "/test/diabetes/"+query)
@@ -88,8 +90,8 @@ function makeGraphs(error, diabetesJson) {
 	//var max_state = totalDonationsByState.top(1)[0].value;
 
 	//Define values (to be used in charts)
-	var minDate = endDateDim.bottom(1)[0]["END_DATE"];
-	var maxDate = endDateDim.top(1)[0]["END_DATE"];
+	var minDate = startDateDim.bottom(1)[0]["START_DATE"];
+	var maxDate = startDateDim.top(1)[0]["START_DATE"];
 
 	console.log(minDate);
     console.log(maxDate);

@@ -92,12 +92,108 @@ $("#btn-get").on("click", function() {
 
   location.href = Flask.url_for("dashboard");
 
-  console.log(String(result))
+  console.log(String(result));
 });
 
 $("#btn-reset").on("click", function() {
   $("#builder").queryBuilder("reset");
 });
+
+// $("#btn-set").on("click", function() {
+
+
+//   console.log(localStorage.getItem("query"));
+
+//   var value;
+
+
+//   $.get(Flask.url_for("donorschoose_projects", {query:localStorage.getItem("query")}), function(data) {
+       
+//       // value = data
+
+//       console.log(data);
+
+//       value = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+
+//       localStorage.setItem("downloadVal", value);
+
+
+
+//       //var dlAnchorElem = document.getElementById("btn-group").getElementsByTagName("#btn-set");
+
+
+//       // $("#btn-set").setAttribute("href", value);
+
+//       // $("#btn-set").setAttribute("download", "scene.json");
+
+
+//       // el.setAttribute("href", value);
+//       // el.setAttribute("download", "data.json");
+//     }
+
+//     );
+
+
+
+//   //console.log(value)
+
+  
+
+
+
+// });
+
+
+  function exportJson(el) {
+
+    console.log(localStorage.getItem("query"));
+
+    var value;
+
+    // var obj = {
+    //     a: 123,
+    //     b: "4 5 6"
+    // };
+    // var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(value));
+    // what to return in order to show download window?
+
+
+
+     $.get(Flask.url_for("donorschoose_projects", {query:localStorage.getItem("query")}), function(data) {
+       
+      // value = data
+
+      //console.log(data);
+
+      value = "text/json;charset=utf-8," + encodeURIComponent(data);
+
+      //localStorage.setItem("downloadVal", value);
+
+      console.log(value)
+
+
+
+      //var dlAnchorElem = document.getElementById("btn-group").getElementsByTagName("#btn-set");
+
+
+      // $("#btn-set").setAttribute("href", value);
+
+      // $("#btn-set").setAttribute("download", "scene.json");
+
+
+      el.setAttribute("href", "data:"+value);
+      el.setAttribute("download", "data.json");
+
+
+    }
+
+    );
+
+   
+
+
+    
+}
 
 // $("#btn-set").on("click", function() {
 //   //$('#builder').queryBuilder('setRules', rules_basic);
